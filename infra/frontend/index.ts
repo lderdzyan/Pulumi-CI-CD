@@ -76,8 +76,7 @@ export function deployFrontend() {
     origins: [{
       domainName: originBucket.bucketRegionalDomainName,
       originAccessControlId: s3Oac.id,
-      originId: frontendS3OriginId,
-      originPath: "/apps"
+      originId: frontendS3OriginId
     }],
     comment: "msinfraops-poc-frontend",
     enabled: true,
