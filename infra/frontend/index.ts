@@ -20,7 +20,7 @@ export function deployFrontend() {
   });
 
   const s3Oac = new aws.cloudfront.OriginAccessControl("s3-oac", {
-    name: `msinfraops-poc-frontend-oac-${env}`,
+    name: `msinfraops-frontend-oac-${env}`,
     originAccessControlOriginType: "s3",
     signingBehavior: "always",
     signingProtocol: "sigv4",
