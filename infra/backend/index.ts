@@ -64,7 +64,7 @@ export function deployBackend() {
           createPublishLambda(lambda, httpApi);
           break;
         default:
-          console.log(`Unknown lambda type: ${lambda.type}`);
+          console.log(`Unknown lambda type`);
       }
     }
   }
