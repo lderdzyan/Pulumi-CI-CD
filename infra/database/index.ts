@@ -27,9 +27,10 @@ interface Table {
   attributes: Attribute[];
   globalSecondaryIndex: SecondaryIndex[];
 }
-// change 45 r
+// change 45 rope
 export function deployData() {
   tables?.forEach((table) => {
+    console.log(table);
     new aws.dynamodb.Table(`${table.name}-table`, {
       name: `${table.name}-${environment}`,
       billingMode: table.billingMode,

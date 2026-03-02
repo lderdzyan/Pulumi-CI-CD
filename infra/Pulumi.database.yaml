@@ -1,6 +1,6 @@
 encryptionsalt: v1:Lcn1zt35+3k=:v1:AVFidY7zb4MSzMPN:pMx1/+ioYKfsssux7MdQfk0OsBMrRw==
 config:  
-  msinfraops-poc:tables:
+  tables:
     - name: msinfraops-poc-dev
       billingMode: PAY_PER_REQUEST
       hashKey: _pk
