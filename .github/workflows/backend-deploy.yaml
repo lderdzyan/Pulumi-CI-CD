@@ -116,6 +116,9 @@ jobs:
     name: Deploy Lambda functions
     needs: resolve-inputs
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./infra
     steps:
       - name: Assume main role
         uses: aws-actions/configure-aws-credentials@v4
