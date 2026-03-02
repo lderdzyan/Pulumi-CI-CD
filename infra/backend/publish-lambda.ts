@@ -52,7 +52,7 @@ export default function createPublishLambda(lambda: PublishLambdaFunction, httpA
 
     new aws.sqs.QueuePolicy(`${lambda.name}-sqs-policy`, {
       queueUrl: sqsQueue.url,
-      policy: policy Document.json,
+      policy: policyDocument.json,
     });
 
     new aws.iam.RolePolicy(`${lambda.name}-lambda-sqs-policy`, {
