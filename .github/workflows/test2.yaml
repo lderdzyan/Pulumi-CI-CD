@@ -1,8 +1,8 @@
-name: "Backend - Deploy Lambda Functions"
+name: "Second Test"
 
 on:
   workflow_run:
-    workflows: ["test"]
+    workflows: ["My Test"]
     types: [completed]
 
   workflow_dispatch:
