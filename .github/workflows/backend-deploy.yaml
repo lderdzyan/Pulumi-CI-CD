@@ -30,7 +30,7 @@ permissions:
 jobs:
   resolve-inputs:
     name: Resolve inputs and list Lambda functions
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'  }}
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push' && ( startsWith(github.event.workflow_run.head_branch, 'v') || github.event.workflow_run.head_branch == 'dev' )) }}
     outputs:
       instance: ${{ steps.resolve.outputs.instance }}
       version: ${{ steps.resolve.outputs.version }}
@@ -66,32 +66,17 @@ jobs:
         run: |
           EVENT="${{ github.event.workflow_run.event }}"
           BRANCH="${{ github.ref_name }}"
-
+          TAG="${{ github.event.workflow_run.head_branch }}"
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
             echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
           elif [[ "$EVENT" == "pull_request" ]]; then
-            echo "SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
-            git fetch origin
-            BRANCH=$(git branch -r --contains $SHA | grep -E 'origin/' | head -n1)
-            echo $BRANCH
-            if [[ "$BRANCH" == *hotfix-* ]]; then
-              echo "Merged PR into hotfix branch, skipping workflow"
-              exit 78
-            else
-              echo "version=dev" >> $GITHUB_OUTPUT
-              echo "instance=dev" >> $GITHUB_OUTPUT
-            fi
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "instance=dev" >> $GITHUB_OUTPUT
           else
-            echo "SHA=${{ github.event.workflow_run.head_sha }}" >> $GITHUB_ENV
-            git fetch --tags
-            TAG=$(git tag --points-at $SHA)
-
-            echo "version=$TAG" >> $GITHUB_OUTPUT
-            echo "instance=ua" >> $GITHUB_OUTPUT
+              echo "version=$TAG" >> $GITHUB_OUTPUT
+              echo "instance=ua" >> $GITHUB_OUTPUT
           fi
-
-          
 
       - name: Assuming federated role
         uses: aws-actions/configure-aws-credentials@v4
