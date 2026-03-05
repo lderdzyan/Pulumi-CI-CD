@@ -37,6 +37,7 @@ jobs:
   resolve-inputs:
     name: Resolve version and instance
     runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.pull_request.merged == true) || (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) }}
     outputs:
       instance: ${{ steps.resolve.outputs.instance }}
       version: ${{ steps.resolve.outputs.version }}
@@ -47,17 +48,18 @@ jobs:
         id: resolve
         shell: bash
         run: |
+          TAG="${{ github.ref_name }}"
+
           if [[ "${{ github.event_name }}" == "workflow_dispatch" ]]; then
             echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
             echo "instance=${{ inputs.instance }}" >> $GITHUB_OUTPUT
           elif [[ "${{ github.event_name }}" == "pull_request" ]]; then
-              echo "version=dev" >> $GITHUB_OUTPUT
-              echo "instance=dev" >> $GITHUB_OUTPUT
+            echo "version=dev" >> $GITHUB_OUTPUT
+            echo "instance=dev" >> $GITHUB_OUTPUT
           else
-            echo "version=$TAG" >> $GITHUB_OUTPUT
-            echo "instance=ua" >> $GITHUB_OUTPUT
+              echo "version=$TAG" >> $GITHUB_OUTPUT
+              echo "instance=ua" >> $GITHUB_OUTPUT
           fi
-
   deploy-database:
     name: Deploy Database infrastructure
     runs-on: ubuntu-latest
