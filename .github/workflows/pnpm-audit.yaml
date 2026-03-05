@@ -21,6 +21,12 @@ jobs:
         working-directory: ./code/msinfraops-frontend/code/
     steps:
       - uses: actions/checkout@v6
+      
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
        
       - name: Set up Node
         uses: actions/setup-node@v4
@@ -29,10 +35,6 @@ jobs:
           cache: pnpm
           cache-dependency-path: code/msinfraops-frontend/code/pnpm-lock.yaml
 
-      - name: Set up pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ env.PNPM_VERSION }}
 
 
       - name: Downloading PNPM dependencies and auditing
