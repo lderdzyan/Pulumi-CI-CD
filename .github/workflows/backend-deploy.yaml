@@ -39,7 +39,9 @@ jobs:
         working-directory: ./infra
     runs-on: ubuntu-latest
     steps:
-
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        
       - name: Assuming federated role
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -51,14 +53,13 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         shell: bash
         run: |
-          if aws s3 ls "s3://${{ secrets.BUCKET_NAME }}/frontend/${{ inputs.version }}/" > /dev/null 2>&1; then
+          if aws s3 ls "s3://${{ secrets.BUCKET_NAME }}/backend/${{ inputs.version }}/" > /dev/null 2>&1; then
             echo "::notice::Version exists."
           else
             echo "::error::Wrong version number: ${{ inputs.version }}"
             exit 1
           fi
-      - name: Checkout repository
-        uses: actions/checkout@v6
+
 
       - name: Resolve version and instance inputs
         id: resolve
