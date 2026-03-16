@@ -14,7 +14,6 @@ permissions:
   repository-projects: read
   issues: write
   contents: read
-
 jobs:
   detect-iteration-removal:
     runs-on: ubuntu-latest
@@ -27,7 +26,6 @@ jobs:
         with:
           github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
           script: |
-            // Get project number from workflow_dispatch input or default
             const PROJECT_NUMBER = parseInt(context.payload.inputs?.project_number || '1', 10);
             const ITERATION_FIELD = "Iteration";
 
@@ -97,3 +95,4 @@ jobs:
               } else {
                 console.log(`Issue #${issue_number} still has iteration: ${iteration}`);
               }
+            }
