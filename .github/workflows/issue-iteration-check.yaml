@@ -28,18 +28,22 @@ jobs:
           script: |
             const PROJECT_NUMBER = parseInt(context.payload.inputs?.project_number || '1', 10);
             const owner = context.repo.owner;
-            const repo = context.repo.repo;
 
-            // Step 1: Get ProjectV2 Node ID from project number
+            // Step 1: Get ProjectV2 Node ID from project number (user project)
             const projectRes = await github.graphql(`
-              query($owner:String!, $repo:String!, $number:Int!) {
-                repository(owner:$owner, name:$repo) {
-                  projectV2(number:$number) { id }
+              query($owner: String!, $number: Int!) {
+                user(login: $owner) {
+                  projectV2(number: $number) {
+                    id
+                  }
                 }
-              }`, { owner, repo, number: PROJECT_NUMBER });
+              }
+            `, { owner, number: PROJECT_NUMBER });
 
-            const PROJECT_ID = projectRes.repository.projectV2?.id;
+            const PROJECT_ID = projectRes.user.projectV2?.id;
             if (!PROJECT_ID) return console.log("Project not found.");
+
+            console.log(`Using Project ID: ${PROJECT_ID}`);
 
             // Step 2: Fetch project items
             const projectItemsQuery = await github.graphql(`
@@ -63,11 +67,11 @@ jobs:
                             __typename
                             ... on ProjectV2ItemFieldSingleSelectValue {
                               name
-                              field { ... on ProjectV2SingleSelectField { name } }
+                              field { ... on ProjectV2FieldCommon { name } }
                             }
                             ... on ProjectV2ItemFieldIterationValue {
                               title
-                              field { ... on ProjectV2IterationField { name } }
+                              field { ... on ProjectV2FieldCommon { name } }
                             }
                           }
                         }
