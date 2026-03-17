@@ -31,7 +31,6 @@ jobs:
 
             console.log(`Scanning Project v2 number: ${PROJECT_NUMBER}`);
 
-            // Fetch project items
             const projectRes = await github.graphql(`
               query ($owner: String!, $number: Int!) {
                 user(login: $owner) {
