@@ -41,9 +41,7 @@ jobs:
                             number
                             repository {
                               name
-                              owner {
-                                login
-                              }
+                              owner { login }
                             }
                           }
                         }
@@ -52,11 +50,19 @@ jobs:
                             __typename
                             ... on ProjectV2ItemFieldSingleSelectValue {
                               name
-                              field { name }
+                              field {
+                                ... on ProjectV2SingleSelectField {
+                                  name
+                                }
+                              }
                             }
                             ... on ProjectV2ItemFieldIterationValue {
                               title
-                              field { name }
+                              field {
+                                ... on ProjectV2IterationField {
+                                  name
+                                }
+                              }
                             }
                           }
                         }
