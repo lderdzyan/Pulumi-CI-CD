@@ -26,7 +26,7 @@ jobs:
         with:
           github-token: ${{ secrets.PROJECT_AUTOMATION_TOKEN }}
           script: |
-            const PROJECT_ID = parseInt("${{ github.event.inputs.project_number }}");
+            const PROJECT_ID = "${{ github.event.inputs.project_number }}";
 
             // Fetch all project items
             const projectItemsQuery = await github.graphql(`
