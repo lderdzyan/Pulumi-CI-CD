@@ -31,6 +31,7 @@ jobs:
 
             console.log(`Scanning Project v2 number: ${PROJECT_NUMBER}`);
 
+            // ✅ Fetch project items (ROBUST FIELD FETCH)
             const projectRes = await github.graphql(`
               query ($owner: String!, $number: Int!) {
                 user(login: $owner) {
@@ -48,11 +49,23 @@ jobs:
                             }
                           }
                         }
-                        fieldValues(first: 20) {
+                        fieldValues(first: 100) {
                           nodes {
+                            __typename
+
                             ... on ProjectV2ItemFieldIterationValue {
-                              field { ... on ProjectV2FieldCommon { name } }
                               title
+                              field { ... on ProjectV2FieldCommon { name } }
+                            }
+
+                            ... on ProjectV2ItemFieldSingleSelectValue {
+                              name
+                              field { ... on ProjectV2FieldCommon { name } }
+                            }
+
+                            ... on ProjectV2ItemFieldTextValue {
+                              text
+                              field { ... on ProjectV2FieldCommon { name } }
                             }
                           }
                         }
@@ -66,32 +79,89 @@ jobs:
             const items = projectRes.user.projectV2.items.nodes;
 
             for (const item of items) {
-              if (!item.content || !item.content.repository || !item.content.repository.owner) {
-                console.log(`Skipping item ${item.id}: no issue or repository info`);
-                continue;
-              }
+              if (!item.content) continue;
 
               const issue_owner = item.content.repository.owner.login;
               const issue_repo = item.content.repository.name;
               const issue_number = item.content.number;
 
+              // ✅ Detect iteration correctly
               let iteration = null;
+
               for (const val of item.fieldValues.nodes) {
-                if (val.field?.name === ITERATION_FIELD) {
-                  iteration = val.title;
+                if (!val.field) continue;
+
+                if (val.field.name === ITERATION_FIELD) {
+                  if (val.__typename === "ProjectV2ItemFieldIterationValue") {
+                    iteration = val.title;
+                  }
                 }
               }
 
-              if (!iteration) {
-                console.log(`Issue #${issue_number} has no iteration, commenting...`);
+              // ✅ If iteration exists → skip
+              if (iteration) {
+                console.log(`Issue #${issue_number} has iteration: ${iteration}`);
+                continue;
+              }
 
-                await github.rest.issues.createComment({
+              // ✅ Get ALL comments (fix pagination bug)
+              const comments = await github.paginate(
+                github.rest.issues.listComments,
+                {
                   owner: issue_owner,
                   repo: issue_repo,
-                  issue_number: issue_number,
-                  body: "⚠️ Iteration was removed from this issue in the project."
-                });
-              } else {
-                console.log(`Issue #${issue_number} still has iteration: ${iteration}`);
+                  issue_number
+                }
+              );
+
+              const alreadyCommented = comments.some(c =>
+                c.body.includes("Iteration was removed from this issue")
+              );
+
+              if (alreadyCommented) {
+                console.log(`Issue #${issue_number} already handled`);
+                continue;
               }
+
+              // ✅ Check if iteration EVER existed (critical)
+              const timeline = await github.graphql(`
+                query ($owner: String!, $repo: String!, $issue_number: Int!) {
+                  repository(owner: $owner, name: $repo) {
+                    issue(number: $issue_number) {
+                      timelineItems(first: 50) {
+                        nodes {
+                          __typename
+                          ... on ProjectV2ItemFieldValueChangedEvent {
+                            fieldName
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              `, {
+                owner: issue_owner,
+                repo: issue_repo,
+                issue_number
+              });
+
+              const hadIterationBefore = timeline.repository.issue.timelineItems.nodes.some(
+                e => e.__typename === "ProjectV2ItemFieldValueChangedEvent" &&
+                     e.fieldName === ITERATION_FIELD
+              );
+
+              if (!hadIterationBefore) {
+                console.log(`Issue #${issue_number} never had iteration → skip`);
+                continue;
+              }
+
+              // ✅ REAL removal detected
+              console.log(`Iteration removed from issue #${issue_number}, commenting...`);
+
+              await github.rest.issues.createComment({
+                owner: issue_owner,
+                repo: issue_repo,
+                issue_number,
+                body: "⚠️ Iteration was removed from this issue in the project."
+              });
             }
