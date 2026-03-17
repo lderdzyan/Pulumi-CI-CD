@@ -87,7 +87,8 @@ jobs:
                 : null;
 
               const issue = item.content;
-              if (!issue) continue;
+              // skip items that are not linked to an issue
+              if (!issue || !issue.repository || !issue.repository.owner) continue;
 
               const repoOwner = issue.repository.owner.login;
               const repoName = issue.repository.name;
