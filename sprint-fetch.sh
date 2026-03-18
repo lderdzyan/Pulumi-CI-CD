@@ -1,9 +1,14 @@
 #!/bin/bash
 
-OWNER="${GITHUB_OWNER}"  
-REPO="${GITHUB_REPO}"     
+OWNER="${GITHUB_REPOSITORY_OWNER}"  
+REPO="${GITHUB_REPOSITORY}"     
 PROJECT_NUMBER="${PROJECT_NUMBER}"
 S3_BUCKET="${S3_BUCKET}"
+
+REPO_NAME="${REPO#*/}"
+
+export OWNER REPO_NAME GH_TOKEN="${GH_TOKEN:-$GITHUB_TOKEN}"
+
 
 gh api graphql -f query='
 query($owner: String!, $number: Int!) {
@@ -100,7 +105,7 @@ while IFS=, read -r issue sprint_y; do
   if [[ "$sprint_y" != NO_SPRINT* && "$sprint_t" == NO_SPRINT* ]]; then
     echo "Missing sprint for issue: $issue"
     gh issue comment "$issue" \
-  --repo "$OWNER/$REPO" \
+  --repo "$OWNER/$REPO_NAME" \
   --body "⚠️ Sprint was removed from this issue"
   fi
 done < "$yesterday"
