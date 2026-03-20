@@ -42,7 +42,7 @@ jobs:
         run: |
           OWNER="${GITHUB_REPOSITORY_OWNER}"  
           REPO="${GITHUB_REPOSITORY}"     
-          echo "REPO_NAME=${GITHUB_REPOSITORY#*/}"
+          REPO_NAME=${GITHUB_REPOSITORY#*/}
           gh api graphql -f query='
             query($owner: String!, $number: Int!) {
               user(login: $owner) {
@@ -127,6 +127,26 @@ jobs:
               ) as $sprint |
               "\($num),\($sprint)"
             '| tee today.txt
+
+
+      - name: Comment on Changed Issues
+        env:          
+          GH_TOKEN: ${{ secrets.SCRIPT_GITHUB_TOKEN }}
+        run: |
+          OWNER="${GITHUB_REPOSITORY_OWNER}"  
+          REPO="${GITHUB_REPOSITORY}"     
+          REPO_NAME=${GITHUB_REPOSITORY#*/}
+          yesterday="yesterday.txt"
+          today="today.txt"
+          while IFS=, read -r issue sprint_y; do
+            sprint_t=$(grep "^$issue," "$today" | cut -d',' -f2)
+            if [[ "$sprint_y" != NO_SPRINT* && "$sprint_t" == NO_SPRINT* ]]; then
+              echo "Missing sprint for issue: $issue"
+              gh issue comment "$issue" \
+            --repo "$OWNER/$REPO_NAME" \
+            --body "⚠️ Sprint was removed from this issue"
+            fi
+          done < "$yesterday"
 
       - name: Save Todays State for Tomorrow
         run: |
