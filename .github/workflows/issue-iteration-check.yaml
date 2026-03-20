@@ -45,7 +45,7 @@ jobs:
           echo "REPO_NAME=${GITHUB_REPOSITORY#*/}"
           gh api graphql -f query='
             query($owner: String!, $number: Int!) {
-              user(login: $owner) {
+              viewer {
                 projectV2(number: $number) {
                   title
                   items(first: 100) {
