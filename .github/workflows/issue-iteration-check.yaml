@@ -40,11 +40,95 @@ jobs:
           S3_BUCKET: ${{ secrets.S3_BUCKET }}
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          echo "OWNER=${GITHUB_REPOSITORY_OWNER}"
+          OWNER="${GITHUB_REPOSITORY_OWNER}"  
+          REPO="${GITHUB_REPOSITORY}"     
           echo "REPO_NAME=${GITHUB_REPOSITORY#*/}"
-          chmod +x sprint-fetch.sh
-          ./sprint-fetch.sh
+          gh api graphql -f query='
+            query($owner: String!, $number: Int!) {
+              user(login: $owner) {
+                projectV2(number: $number) {
+                  title
+                  items(first: 100) {
+                    nodes {
+                      content {
+                        ... on Issue {
+                          number
+                          title
+                        }
+                        ... on PullRequest {
+                          number
+                          title
+                        }
+                      }
+                      fieldValues(first: 20) {
+                        nodes {
+                          __typename
 
-      - name: Save Todays State for Tomorrow
-        run: |
-          aws s3 cp ./yesterday.txt s3://${{ secrets.BUCKET_NAME }}/yesterday.txt
+                          ... on ProjectV2ItemFieldTextValue {
+                            text
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                name
+                              }
+                            }
+                          }
+
+                          ... on ProjectV2ItemFieldSingleSelectValue {
+                            name
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                name
+                              }
+                            }
+                          }
+
+                          ... on ProjectV2ItemFieldIterationValue {
+                            title
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                name
+                              }
+                            }
+                          }
+
+                          ... on ProjectV2ItemFieldNumberValue {
+                            number
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                name
+                              }
+                            }
+                          }
+
+                          ... on ProjectV2ItemFieldDateValue {
+                            date
+                            field {
+                              ... on ProjectV2FieldCommon {
+                                name
+                              }
+                            }
+                          }
+
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            ' -f owner="$OWNER" -F number=$PROJECT_NUMBER
+      #       #  | jq -r '
+      #       # .data.user.projectV2.items.nodes[] |
+      #       #   .content.number as $num |
+      #       #   (
+      #       #     [.fieldValues.nodes[]
+      #       #       | select(.field.name == "Sprint")
+      #       #       | .name
+      #       #     ][0] // "NO_SPRINT"
+      #       #   ) as $sprint |
+      #       #   "\($num),\($sprint)"
+      #       # ' > today.txt
+
+      # - name: Save Todays State for Tomorrow
+      #   run: |
+      #     aws s3 cp ./yesterday.txt s3://${{ secrets.BUCKET_NAME }}/yesterday.txt
