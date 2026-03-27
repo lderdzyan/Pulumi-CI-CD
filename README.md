@@ -1,13 +1,6 @@
 <div align="center">
 
-# ⚡ DevOps Automation
-
-**Full infrastructure provisioning & deployment — powered by Pulumi + GitHub Actions**
-
-[![Pulumi](https://img.shields.io/badge/Pulumi-IaC-8A3391?style=flat-square&logo=pulumi&logoColor=white)](https://pulumi.com)
-[![AWS](https://img.shields.io/badge/AWS-Lambda%20%2B%20RDS-FF9900?style=flat-square&logo=amazonaws&logoColor=white)](https://aws.amazon.com)
-[![GitHub Actions](https://img.shields.io/badge/GitHub_Actions-CI%2FCD-2088FF?style=flat-square&logo=githubactions&logoColor=white)](https://github.com/features/actions)
-[![Bash](https://img.shields.io/badge/Bash-Automation-4EAA25?style=flat-square&logo=gnubash&logoColor=white)](https://www.gnu.org/software/bash/)
+# ⚡ PULUMI AND CI/CD PROJECT
 
 </div>
 
@@ -63,7 +56,7 @@ Infrastructure is fully declarative and config-driven — no hardcoding, no manu
 Environment behavior is controlled via YAML config files:
 
 ```yaml
-# Pulumi.dev.yaml
+# Pulumi.backend.yaml
 
 environment: dev
 
@@ -80,7 +73,7 @@ database:
   size: small
 ```
 
-> Config files are environment-specific (`dev`, `stage`, `prod`) and drive all resource provisioning dynamically.
+> Config files are stack-specific (`frontend`, `backend`, `database`) and drive all resource provisioning dynamically.
 
 ---
 
@@ -107,7 +100,6 @@ Push / Pull Request
 - ✅ Every push/PR triggers automatic validation
 - ✅ Pulumi Preview runs first — no blind deployments
 - ✅ Environment-driven config prevents any hardcoded values
-- ✅ Fully reproducible across dev / stage / prod
 
 ---
 
